@@ -1,11 +1,13 @@
 module MasterMind
 
-export empty_, blue, red, black, white, green, yellow,  Guess, random_guess,
-    compare, FrequencyList, play_manually, play_automatically, play
+export empty_, blue, red, black, white, green, yellow,  Guess, Answer, random_guess,
+    compare, FrequencyList, play_manually, play_automatically, play, npegs, ncolors, incr
 
 
 using StatsBase
 using StaticArrays
+
+import Base: values
 
 @enum Color::Int empty_ blue red black white green yellow
 const ncolors = length(instances(Color))
@@ -51,7 +53,7 @@ function compare(g1::Guess, g2::Guess)
         for j = 1:npegs
             if i != j && !used1[i] && !used2[j] && g1.pegs[i] == g2.pegs[j]
                 whites += 1
-            used1[i], used2[j] = true, true
+                used1[i], used2[j] = true, true
             end
         end
     end
@@ -66,16 +68,25 @@ end
 allows(f::Fact, g::Guess) = f.answer == compare(f.guess, g)
 allows(fs::Vector{Fact}, g::Guess) = all(allows(f, g) for f in fs)
 
+const frequency_list_size = (npegs+1)^2
 struct FrequencyList
-    fl::Dict{Answer, Int}
+    #fl::Dict{Answer, Int}
+    value::MVector{frequency_list_size, Int}
 end
-FrequencyList() = FrequencyList(Dict{Answer, Int}())
-count_allblacks(fl::FrequencyList) = fl.fl[Answer(npegs, 0)]
+#FrequencyList() = FrequencyList(Dict{Answer, Int}())
+FrequencyList() = FrequencyList(zero(MVector{frequency_list_size, Int}))
+index(a::Answer) = (npegs+1)*a.blacks + a.whites + 1
+#count_allblacks(fl::FrequencyList) = fl.fl[Answer(npegs, 0)]
+count_allblacks(fl::FrequencyList) = fl.value[index(Answer(npegs, 0))]
+#values(fl::FrequencyList) = values(fl.fl)
+values(fl::FrequencyList) = fl.value
+#incr(fl::FrequencyList, key) = fl.fl[key] = get(fl.fl, key, 0) + 1
+incr(fl::FrequencyList, answer) = fl.value[index(answer)] += 1
 
 function info_value(fl::FrequencyList)
     r = 0.0
     ntot = 0
-    for v in values(fl.fl)
+    for v in values(fl)
         ntot += 1
         if v != 0 && v != 1
             r -= v * log(v)
@@ -136,7 +147,7 @@ function make_guess(facts::Vector{Fact})
         fl = FrequencyList()
         for solution in possible_solutions
             answer = compare(all_guesses[i], solution)
-            fl.fl[answer] = get(fl.fl, answer, 0) + 1
+            incr(fl, answer)
         end
         #fl = FrequencyList(countmap(compare(guess, solution) for solution in possible_solutions))
         info_values[i] = info_value(fl)

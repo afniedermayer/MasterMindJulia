@@ -30,6 +30,6 @@ println("\nBenchmark get element from FrequencyList")
 let g1 = random_guess(), g2 = random_guess()
     answer = compare(g1, g2)
     fl = FrequencyList()
-    b = @benchmark $fl.fl[$answer] = get($fl.fl, $answer, 0) + 1
+    b = @benchmark incr($fl, $answer)
     print_benchmark(b)
 end
