@@ -19,10 +19,7 @@ const color_letters = Dict(
 const npegs = 4
 struct Guess
     pegs::SVector{npegs, Color}
-    #pegs::Vector{Color}
-    #pegs::NTuple{npegs, Color}
 end
-#Guess(array::Array) = Guess(tuple(array...))
 Guess() = Guess(fill(empty_, npegs))
 Guess(s::String) = Guess([color_letters[string(c)] for c in s])
 Base.show(io::IO, g::Guess) = print(io, "[", join(replace.(string.(g.pegs), "_" => ""), " "), "]")
@@ -70,17 +67,12 @@ allows(fs::Vector{Fact}, g::Guess) = all(allows(f, g) for f in fs)
 
 const frequency_list_size = (npegs+1)^2
 struct FrequencyList
-    #fl::Dict{Answer, Int}
     value::MVector{frequency_list_size, Int}
 end
-#FrequencyList() = FrequencyList(Dict{Answer, Int}())
 FrequencyList() = FrequencyList(zero(MVector{frequency_list_size, Int}))
 index(a::Answer) = (npegs+1)*a.blacks + a.whites + 1
-#count_allblacks(fl::FrequencyList) = fl.fl[Answer(npegs, 0)]
 count_allblacks(fl::FrequencyList) = fl.value[index(Answer(npegs, 0))]
-#values(fl::FrequencyList) = values(fl.fl)
 values(fl::FrequencyList) = fl.value
-#incr(fl::FrequencyList, key) = fl.fl[key] = get(fl.fl, key, 0) + 1
 incr(fl::FrequencyList, answer) = fl.value[index(answer)] += 1
 
 function info_value(fl::FrequencyList)
@@ -149,7 +141,6 @@ function make_guess(facts::Vector{Fact})
             answer = compare(all_guesses[i], solution)
             incr(fl, answer)
         end
-        #fl = FrequencyList(countmap(compare(guess, solution) for solution in possible_solutions))
         info_values[i] = info_value(fl)
     end
     max_info_value = maximum(info_values)
