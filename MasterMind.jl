@@ -40,13 +40,13 @@ function compare(g1::Guess, g2::Guess)
     blacks, whites = 0, 0
     used1 = @MVector zeros(Bool, npegs)
     used2 = @MVector zeros(Bool, npegs)
-    for i = 1:npegs
+    @inbounds @simd for i = 1:npegs
         if g1.pegs[i] == g2.pegs[i]
             blacks += 1
             used1[i], used2[i] = true, true
         end
     end
-    for i = 1:npegs
+    @inbounds for i = 1:npegs
         for j = 1:npegs
             if i != j && !used1[i] && !used2[j] && g1.pegs[i] == g2.pegs[j]
                 whites += 1
@@ -76,19 +76,9 @@ values(fl::FrequencyList) = fl.value
 incr(fl::FrequencyList, answer) = fl.value[index(answer)] += 1
 
 function info_value(fl::FrequencyList)
-    r = 0.0
-    ntot = 0
-    for v in values(fl)
-        ntot += 1
-        if v != 0 && v != 1
-            r -= v * log(v)
-        end
-    end
-    if ntot > 0
-        return (r/ntot + log(ntot)) / log(2.0)
-    else
-        return 0.0
-    end
+    ntot = frequency_list_size
+    r = sum(v!=1 ? -v*log(v) : 0.0 for v in values(fl) if v!=0)
+    return (r/ntot + log(ntot)) / log(2.0)
 end
 
 function calculate_all_guesses!(result, prev_colors, npegs=npegs)
@@ -138,7 +128,7 @@ function make_guess(facts::Vector{Fact})
         guess = all_guesses[i]
         fl = FrequencyList()
         for solution in possible_solutions
-            answer = compare(all_guesses[i], solution)
+            answer = compare(guess, solution)
             incr(fl, answer)
         end
         info_values[i] = info_value(fl)
