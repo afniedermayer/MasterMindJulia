@@ -1,6 +1,6 @@
 # MasterMindJulia
 
-Software that guesses the color combination in the MasterMind game. It chooses the guess with the highest information entropy. This minimizes the number of steps needed to guess the correct combination.
+Software that guesses the color combination in the [MasterMind](https://en.wikipedia.org/wiki/Mastermind_%28board_game%29) game. It chooses the guess with the highest [information entropy](https://en.wikipedia.org/wiki/Entropy_(information_theory)). This minimizes the number of steps needed to guess the correct combination.
 
 To run the code, run in the command line
 ```
